@@ -18,6 +18,10 @@ _global_script_class_icons={
 config/name="Kristen Kringle, Plague Doctor"
 config/icon="res://icon.png"
 
+[autoload]
+
+Global="*res://global.gd"
+
 [display]
 
 window/size/width=256
