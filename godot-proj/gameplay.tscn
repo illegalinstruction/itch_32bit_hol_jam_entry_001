@@ -1,0 +1,11 @@
+[gd_scene format=2]
+
+[node name="gameplay_root" type="Node2D"]
+
+[node name="Label" type="Label" parent="."]
+margin_left = 130.767
+margin_top = 94.5632
+margin_right = 170.767
+margin_bottom = 108.563
+text = "Hello, I Am
+Scene B"

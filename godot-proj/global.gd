@@ -193,7 +193,7 @@ func _process(_ignored):
 				if (screenwipe_next_scene == null):
 					get_tree().quit();
 				else:
-					get_tree().change_scene_to(screenwipe_next_scene);
+					get_node("/root/main/colour_ruiner/game_root").change_scene_to(screenwipe_next_scene);
 		else:
 			screenwipe_anim_clock -= 1;
 			if (screenwipe_anim_clock < 1):

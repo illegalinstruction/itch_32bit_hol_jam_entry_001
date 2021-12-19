@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://icon.png" type="Texture" id=1]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node2D
+
+const CIRCLES_PER_ROW : int = 9;
+const CIRCLES_PER_COL : int = 8;
+
+
+#-------------------------------------------------------------------------------
+
+func _ready():
+	set_process(true);
+	return;
+	
+#-------------------------------------------------------------------------------
+
+func _process(_ignored):
+	update();  # force a repaint
+	
+#-------------------------------------------------------------------------------
+
+func _draw():
+	if (Global.screenwipe_anim_clock == 0):
+		return;
+		
+	var x_index;
+	var y_index;
+	
+	for y_index in range(0, CIRCLES_PER_COL) :
+		
+		var circle_size : int =  clamp(Global.screenwipe_anim_clock - (y_index * 6.5), 0, 40);
+		
+		if (Global.screenwipe_direction):
+			for x_index in range(0, CIRCLES_PER_ROW) :
+				draw_circle(Vector2(x_index * 32.0, y_index * 31.0), circle_size, Color.black);
+		else:
+			for x_index in range(0, CIRCLES_PER_ROW) :
+				draw_circle(Vector2(x_index * 32.0, 224 - (y_index * 31.0)), circle_size, Color.black);
+	return;
+				
+		"
+
+[node name="helper_screenwipe" type="Node2D"]
+script = SubResource( 1 )
+
+[node name="dummy" type="Sprite" parent="."]
+position = Vector2( -108.181, 139.089 )
+texture = ExtResource( 1 )
