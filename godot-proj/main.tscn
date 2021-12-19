@@ -1,10 +1,65 @@
-[gd_scene format=2]
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://test.png" type="Texture" id=1]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+// ordered dither and faked colour-depth reducer
+// tries to make it look like it's running on a Hi-Saturn
+
+void fragment()
+{
+//	int 	screen_x = int(UV.x * SCREEN_PIXEL_SIZE.x);
+//	int 	screen_y = int(UV.y * SCREEN_PIXEL_SIZE.y);
+	int 	screen_x = int(UV.x * 256.0);
+	int 	screen_y = int(UV.y * 224.0);
+
+
+	
+	float precision = 9.0;
+	
+	vec3 	downsampled_colour;
+	
+	if (((screen_x + screen_y) % 2) == 0)  
+		downsampled_colour = floor(texture(TEXTURE, UV).xyz * precision) / precision;
+	else
+	{
+		downsampled_colour = texture(TEXTURE, UV).xyz;
+		downsampled_colour.x = float(int(downsampled_colour.x * precision * 2.0))/precision / 2.0;
+		downsampled_colour.y = float(int(downsampled_colour.y * precision * 2.0))/precision / 2.0;
+		downsampled_colour.z = float(int(downsampled_colour.z * precision * 2.0))/precision / 2.0;
+	}
+	
+	COLOR.xyz = downsampled_colour;
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+
+[sub_resource type="GDScript" id=3]
+script/source = "extends Viewport
+
+#-----------------------------------------
+
+func change_scene_to(next_scene):
+	self.remove_child(get_child(0));
+	self.add_child(next_scene.instance());
+	return;"
 
 [node name="main" type="Node2D"]
 
 [node name="colour_ruiner" type="ViewportContainer" parent="."]
-margin_right = 40.0
-margin_bottom = 40.0
+material = SubResource( 2 )
+margin_right = 256.0
+margin_bottom = 224.0
 
 [node name="game_root" type="Viewport" parent="colour_ruiner"]
 size = Vector2( 256, 224 )
+handle_input_locally = false
+render_target_update_mode = 3
+script = SubResource( 3 )
+
+[node name="Sprite2" type="Sprite" parent="colour_ruiner/game_root"]
+texture = ExtResource( 1 )
+centered = false
