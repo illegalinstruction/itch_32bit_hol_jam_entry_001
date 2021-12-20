@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://test.png" type="Texture" id=1]
+[ext_resource path="res://gfx/splash/splash_1.png" type="Texture" id=1]
+[ext_resource path="res://gfx/splash/splash_0.png" type="Texture" id=2]
 
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
@@ -15,9 +16,8 @@ void fragment()
 	int 	screen_x = int(UV.x * 256.0);
 	int 	screen_y = int(UV.y * 224.0);
 
-
 	
-	float precision = 9.0;
+	float precision = 33.33;
 	
 	vec3 	downsampled_colour;
 	
@@ -25,11 +25,8 @@ void fragment()
 		downsampled_colour = floor(texture(TEXTURE, UV).xyz * precision) / precision;
 	else
 	{
-		downsampled_colour = texture(TEXTURE, UV).xyz;
-		downsampled_colour.x = float(int(downsampled_colour.x * precision * 2.0))/precision / 2.0;
-		downsampled_colour.y = float(int(downsampled_colour.y * precision * 2.0))/precision / 2.0;
-		downsampled_colour.z = float(int(downsampled_colour.z * precision * 2.0))/precision / 2.0;
-	}
+		downsampled_colour = floor(texture(TEXTURE, UV).xyz * precision * 3.9) /precision / 3.9;
+	} 
 	
 	COLOR.xyz = downsampled_colour;
 }"
@@ -50,29 +47,33 @@ func change_scene_to(next_scene):
 [sub_resource type="GDScript" id=4]
 script/source = "extends Node2D
 
-# Declare member variables here. Examples:
-# var a = 2
-# var b = \"text\"
+var anim_clock : int = 0;
 
-var ticks : int = 0;
+const II_LOGO_END : int = 180;
+const SPLASH_END  : int = 420;
 
-# Called when the node enters the scene tree for the first time.
+#-------------------------------------------------------------------------------
+
 func _ready():
+	set_process(true);
+		
 	var screenwipe = load(\"res://helper_screenwipe.tscn\");
 	add_child(screenwipe.instance());
-	Global.new_scene_screenwipe_start();	
-	self.set_process(true);
+	Global.new_scene_screenwipe_start();
+
 	return;
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+#-------------------------------------------------------------------------------
+
 func _process(_ignored):
-	if(Global.screenwipe_active == false):
-		ticks = ticks + 1;
+	anim_clock += 1;
 	
-	if (ticks > 59):
-		Global.change_scene_to(load(\"res://main_menu.tscn\"));
-	return;
-"
+	if (anim_clock > II_LOGO_END):
+		get_child(1).modulate = Color8(255,255,255, 255-clamp(-(II_LOGO_END - anim_clock)*2,0,255));
+
+	if (anim_clock == SPLASH_END):
+		Global.change_scene_to((load(\"res://main_menu.tscn\")));	
+	return;"
 
 [node name="main" type="Node2D"]
 
@@ -90,6 +91,10 @@ script = SubResource( 3 )
 [node name="splash_screen_root" type="Node2D" parent="colour_ruiner/game_root"]
 script = SubResource( 4 )
 
-[node name="Sprite" type="Sprite" parent="colour_ruiner/game_root/splash_screen_root"]
+[node name="screen_1" type="Sprite" parent="colour_ruiner/game_root/splash_screen_root"]
 texture = ExtResource( 1 )
+centered = false
+
+[node name="screen_0" type="Sprite" parent="colour_ruiner/game_root/splash_screen_root"]
+texture = ExtResource( 2 )
 centered = false

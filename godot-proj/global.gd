@@ -12,6 +12,10 @@ var screenwipe_direction	: bool; # true for out, false for in
 var screenwipe_active		: bool;
 var screenwipe_next_scene;
 
+#---- MAIN UI TYPEFACE ---------------------------------------------------------
+
+var mainfont	: BitmapFont = null;
+
 #---- JOYSTICK VARS ------------------------------------------------------------
 
 var use_joystick : bool = true;
@@ -164,7 +168,26 @@ func poll_joystick():
 
 #-------------------------------------------------------------------------------
 
+func load_fonts():
+	mainfont = BitmapFont.new();
+	mainfont.set_height(14);
+	mainfont.add_texture(load("res://gfx/font/mainfont.png"));
+		
+	var x_index;
+	var y_index;
+	var char_index = 32;
+	
+	for y_index in range (0,7):
+		for x_index in range (0, 16):
+			mainfont.add_char(char_index,0,Rect2(Vector2((x_index*16) + 2, (y_index*16)+2), Vector2(9,13)));
+			char_index += 1;  
+	
+	return;
+
+#-------------------------------------------------------------------------------
+
 func _ready():
+	load_fonts();
 	
 	# ready screen transition mechanism
 	# for use
