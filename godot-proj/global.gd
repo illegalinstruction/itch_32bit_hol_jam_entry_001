@@ -2,6 +2,97 @@ extends Node2D
 
 const DEBUG_MODE : bool = true;
 
+#===============================================================================
+#---- MAIN MENU and DATA VARS --------------------------------------------------
+# if using this for a different game, CHANGE THE NEXT LINE FIRST!
+const game_data_base : String = "user://kkringle_001";
+const options_path 		= game_data_base + "-options";
+const hiscore_path 		= game_data_base + "-hiscores";
+
+const GAME_SUPPORTS_SAVING 			: bool = true;
+const GAME_SUPPORTS_HIGH_SCORES		: bool = false;
+const GAME_SUPPORTS_TROPHIES			: bool = true;
+
+var sfx_vol 		: int 	= 255;
+var music_vol 		: int 	= 255;
+var use_joystick 	: bool	= true;
+
+#===============
+
+func save_options_data():
+	var fout : File = File.new();
+
+	fout.open(options_path, fout.WRITE);
+	sfx_vol = int(clamp(sfx_vol,0, 255));
+	fout.store_8(sfx_vol);
+	music_vol = int(clamp(music_vol, 0, 255));
+	fout.store_8(music_vol);
+	fout.store_8(use_joystick);
+	fout.close();
+	
+	return;
+	
+#===============
+
+func load_options_data():
+	var fin : File = File.new();
+		
+	if (fin.file_exists(options_path)):
+		fin.open(options_path, fin.READ);
+		sfx_vol = fin.get_8();
+		music_vol = fin.get_8();
+		use_joystick = fin.get_8();
+		fin.close();
+	else:
+		save_options_data();
+	return;
+
+#===============================================================================
+#--- MUSIC PLAYER VARS & FUNCS -------------------------------------------------
+var curr_music_id_priv 			: int = 0;
+var next_music_id_priv			: int = 0;
+var curr_music_fadevol_priv 	: int = -1;
+var bgm_player 					: AudioStreamPlayer;
+var bgm_file						: Resource = null;
+
+const music_fadeout_step_size	: int = 3;
+
+#-------------------------------------------------------------------------------
+func play_BGM(id:int):
+	if (id == curr_music_id_priv):
+		return;
+	else:
+		next_music_id_priv = id;
+
+#-------------------------------------------------------------------------------
+func bgm_fade_helper_priv():
+	bgm_player.volume_db = (((curr_music_fadevol_priv / 255.0) * (music_vol / 255.0)) * 50.0) - 49.7;
+	
+	# fade in
+	if (curr_music_id_priv == next_music_id_priv):
+		curr_music_fadevol_priv += music_fadeout_step_size * 16.0;
+		curr_music_fadevol_priv = clamp(curr_music_fadevol_priv,0,255);
+		return;
+	
+	#fade out
+	curr_music_fadevol_priv -= music_fadeout_step_size; 
+
+	if (curr_music_fadevol_priv < 0):
+		curr_music_fadevol_priv = 0;
+		bgm_player.stop();
+		curr_music_id_priv = next_music_id_priv;		
+		
+		var music_path = "res://bgm/%02d.ogg" % next_music_id_priv;
+		
+		if (File.new().file_exists(music_path)):
+			bgm_file = load(music_path);
+			bgm_player.stream = bgm_file;
+			bgm_player.play();
+	
+	return;
+			
+	
+
 #---- SCREEN TRANSITION VARS  --------------------------------------------------
 # these are here as a workaround for gdscript not having static vars
 
@@ -17,8 +108,6 @@ var screenwipe_next_scene;
 var mainfont	: BitmapFont = null;
 
 #---- JOYSTICK VARS ------------------------------------------------------------
-
-var use_joystick : bool = true;
 
 enum BUTTON_STATE {
 	IDLE,
@@ -157,13 +246,99 @@ func poll_joystick():
 		else:
 			_button_select = BUTTON_STATE.IDLE;
 			
-	#else:
+	else:
 	#--- KEYBOARD --------------------------------------
-	
-	# if (Input.is_key_pressed(KEY_A)):
-	#	if (Input.is_key_pressed(KEY_W)):
-	#   if (Input.is_key_pressed(KEY_S)):
-			
+		#--- ANALOGUE STICKS --------------------------
+		
+		if (Input.is_key_pressed(KEY_W)):
+			_left_stick_distance = 1.0;
+			if (Input.is_key_pressed(KEY_A)):
+				_left_stick_angle = deg2rad(135);
+			elif (Input.is_key_pressed(KEY_D)):
+				_left_stick_angle = deg2rad(45);
+			else:
+				_left_stick_angle = deg2rad(90);
+		elif (Input.is_key_pressed(KEY_S)):
+			_left_stick_distance = 1.0;
+			if (Input.is_key_pressed(KEY_A)):
+				_left_stick_angle = deg2rad(225);
+			elif (Input.is_key_pressed(KEY_D)):
+				_left_stick_angle = deg2rad(315);
+			else:
+				_left_stick_angle = deg2rad(270);
+		elif (Input.is_key_pressed(KEY_A)):
+			_left_stick_distance = 1.0;
+			_left_stick_angle = deg2rad(180);
+		elif (Input.is_key_pressed(KEY_D)):
+			_left_stick_distance = 1.0;
+			_left_stick_angle = deg2rad(0);
+		else:
+			_left_stick_distance = 0;
+
+		var mouse_vec : Vector2 = get_viewport().get_mouse_position() - (get_viewport().size / Vector2(2.0,2.0)); 
+		 
+		_right_stick_x = mouse_vec.x;
+		_right_stick_y = mouse_vec.y;
+		
+		#--- BUTTONS ----------------------------------
+		#----------
+		
+		if (Input.is_mouse_button_pressed(0)):
+			_button_a = _button_a + 1;
+			_button_a = int(clamp(_button_a,0,2.0));
+		else:
+			_button_a = BUTTON_STATE.IDLE;
+		
+		#----------
+		
+		if (Input.is_mouse_button_pressed(1)):
+			if (_button_b == BUTTON_STATE.PRESSED):
+				_button_b = BUTTON_STATE.HELD;
+			else:
+				_button_b = BUTTON_STATE.PRESSED;
+		else:
+			_button_b = BUTTON_STATE.IDLE;
+		
+		#----------
+
+		if (Input.is_key_pressed(KEY_R)):
+			if (_button_L2 == BUTTON_STATE.PRESSED):
+				_button_L2 = BUTTON_STATE.HELD;
+			else:
+				_button_L2 = BUTTON_STATE.PRESSED;
+		else:
+			_button_L2 = BUTTON_STATE.IDLE;
+		
+		#----------
+		
+		if (Input.is_key_pressed(KEY_F)):
+			if (_button_R2 == BUTTON_STATE.PRESSED):
+				_button_R2 = BUTTON_STATE.HELD;
+			else:
+				_button_R2 = BUTTON_STATE.PRESSED;
+		else:
+			_button_R2 = BUTTON_STATE.IDLE;
+		
+		#----------
+		
+		if (Input.is_key_pressed(KEY_ENTER)):
+			if (_button_start == BUTTON_STATE.PRESSED):
+				_button_start = BUTTON_STATE.HELD;
+			else:
+				_button_start = BUTTON_STATE.PRESSED;
+		else:
+			_button_start = BUTTON_STATE.IDLE;
+
+		#----------
+		
+		if (Input.is_key_pressed(KEY_BACKSPACE)):
+			if (_button_select == BUTTON_STATE.PRESSED):
+				_button_select = BUTTON_STATE.HELD;
+			else:
+				_button_select = BUTTON_STATE.PRESSED;
+		else:
+			_button_select = BUTTON_STATE.IDLE;
+
 	return;
 
 #-------------------------------------------------------------------------------
@@ -187,6 +362,11 @@ func load_fonts():
 #-------------------------------------------------------------------------------
 
 func _ready():
+	# music player
+	bgm_player = AudioStreamPlayer.new();
+	add_child(bgm_player);	
+	
+	# ui typeface
 	load_fonts();
 	
 	# ready screen transition mechanism
@@ -202,6 +382,9 @@ func _ready():
 #-------------------------------------------------------------------------------
 
 func _process(_ignored):
+	# --- music manager
+	bgm_fade_helper_priv();
+	
 	# --- gather input
 	poll_joystick();
 	
@@ -238,6 +421,7 @@ func change_scene_to(in_scene):
 	screenwipe_active			= true;
 	screenwipe_next_scene	= in_scene;
 	screenwipe_anim_clock	= 0;
+	play_BGM(0);
 	
 #-------------------------------------------------------------------------------
 

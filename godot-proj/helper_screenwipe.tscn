@@ -35,10 +35,10 @@ func _draw():
 		
 		if (Global.screenwipe_direction):
 			for x_index in range(0, CIRCLES_PER_ROW) :
-				draw_circle(Vector2(x_index * 32.0, y_index * 31.0), circle_size, Color.black);
+				draw_circle(Vector2(x_index * 48.0 + ((y_index % 2) * 24.0) , y_index * 31.0), circle_size, Color.black);
 		else:
 			for x_index in range(0, CIRCLES_PER_ROW) :
-				draw_circle(Vector2(x_index * 32.0, 224 - (y_index * 31.0)), circle_size, Color.black);
+				draw_circle(Vector2(x_index * 48.0 + ((y_index % 2) * 24.0), 224 - (y_index * 31.0)), circle_size, Color.black);
 	return;
 				
 		"
