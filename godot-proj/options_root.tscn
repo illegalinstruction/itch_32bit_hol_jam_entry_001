@@ -1,0 +1,163 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://snd/menu/move.wav" type="AudioStream" id=1]
+[ext_resource path="res://snd/menu/accept.wav" type="AudioStream" id=2]
+[ext_resource path="res://gfx/mainmenu/cursor.png" type="Texture" id=3]
+[ext_resource path="res://gfx/options/logo.png" type="Texture" id=4]
+[ext_resource path="res://snd/disc/disc3.wav" type="AudioStream" id=5]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node2D
+
+#                                  ##                                            
+#                       ##         \"\"                                            
+#  m####m   ##m###m   #######    ####      m####m   ##m####m  mm#####m           
+# ##\"  \"##  ##\"  \"##    ##         ##     ##\"  \"##  ##\"   ##  ##mmmm \"           
+# ##    ##  ##    ##    ##         ##     ##    ##  ##    ##   \"\"\"\"##m           
+# \"##mm##\"  ###mm##\"    ##mmm   mmm##mmm  \"##mm##\"  ##    ##  #mmmmm##           
+#   \"\"\"\"    ## \"\"\"       \"\"\"\"   \"\"\"\"\"\"\"\"    \"\"\"\"    \"\"    \"\"   \"\"\"\"\"\"            
+#           ##      
+#---------------------------------------------------------------------
+
+var anim_clock 	: int;
+var menu_opts 		: Array = [];
+
+var font;
+onready var snd_move		: AudioStreamPlayer = get_node(\"aud_move\");
+onready var snd_choice 	: AudioStreamPlayer = get_node(\"aud_accept\");
+
+var cursor_pos : int = 0;
+
+#---------------------------------------------------------------------
+
+func prepare_menu_opts():
+	menu_opts.append(Label.new());
+	menu_opts.back().text = \"Sound Effect Volume: \" + str(int(Global.sfx_vol / 32.0));
+
+	menu_opts.append(Label.new());
+	menu_opts.back().text = \"Music Effect Volume: \" + str(int(Global.music_vol / 32.0));
+
+	menu_opts.append(Label.new());
+	menu_opts.back().text = \"Use Joypad: \" + str(Global.use_joystick);
+	
+	menu_opts.append(Label.new());
+	menu_opts.back().text = \"Back \";
+
+	var i;
+	for i in range( 0, menu_opts.size()):
+		menu_opts[i].add_font_override(\"font\",font);
+		
+		add_child(menu_opts[i]);
+		menu_opts[i].set_align(Label.ALIGN_LEFT);
+		menu_opts[i].rect_position.x = 64;
+		menu_opts[i].rect_position.y = i * menu_opts[i].rect_size.y + get_viewport().size.y / 2.0;	
+
+	return;
+	
+#---------------------------------------------------------------------
+
+func _ready():
+	font = Global.mainfont;
+	
+	set_process(true);
+	
+	Global.play_BGM(2);
+	prepare_menu_opts();
+	
+	get_node(\"cursor\").global_position.x = 64;
+	get_node(\"cursor\").global_position.y = menu_opts[cursor_pos].rect_position.y + (font.get_height() / 2.0);
+
+	var screenwipe = load(\"res://helper_screenwipe.tscn\");
+	add_child(screenwipe.instance());
+	Global.new_scene_screenwipe_start();	
+
+	return;
+
+#---------------------------------------------------------------------
+func _process(_ignored):
+	anim_clock += 1;
+	
+	# animate cursor
+	get_node(\"cursor\").position.x =  64.0 + (sin(anim_clock/14.0) * 4.0);
+	
+	if (Global.screenwipe_active):
+		# work around for a weird bug where it thinks fire
+		# is pressed already when we get into the menu
+		Global._menu_accept 	= Global.BUTTON_STATE.IDLE; 
+		return;
+	
+	if ((Global._menu_accept == Global.BUTTON_STATE.PRESSED)):
+		# play the sound
+		
+		if (cursor_pos == 1):
+			Global.music_vol += 32;
+			if (Global.music_vol > 255):
+				Global.music_vol = 0;
+			menu_opts[1].text = \"Music Effect Volume: \" + str(int(Global.music_vol / 32.0));	
+
+		if (cursor_pos == 0):
+			Global.sfx_vol += 32;
+			if (Global.sfx_vol > 255):
+				Global.sfx_vol = 0;
+			menu_opts[0].text = \"Sound Effect Volume: \" + str(int(Global.sfx_vol / 32.0));	
+
+		if (cursor_pos == 2):
+			Global.use_joystick = not Global.use_joystick;
+			menu_opts[2].text = \"Use Joypad: \" + str(Global.use_joystick);
+			
+		if (cursor_pos == 3):
+			Global.save_options_data();
+			Global.change_scene_to(load(\"res://menu_root.tscn\"));	
+
+		snd_choice.volume_db = Global.actual_playback_vol();
+		snd_choice.play();
+			
+			
+	#--- handle input - user has pressed up or down
+	if ((Global._menu_down == Global.BUTTON_STATE.PRESSED) or (Global._menu_up == Global.BUTTON_STATE.PRESSED)):
+		
+		# play the sound
+		snd_move.volume_db = Global.actual_playback_vol();
+		snd_move.play();
+		
+		# actually move the cursor
+		if (Global._menu_up == Global.BUTTON_STATE.PRESSED):
+			cursor_pos -= 1;
+
+		if (Global._menu_down == Global.BUTTON_STATE.PRESSED):
+			cursor_pos += 1;
+		
+		# wrapping
+		if (cursor_pos >= menu_opts.size()):
+			cursor_pos = 0;
+		
+		if (cursor_pos < 0):
+			cursor_pos = menu_opts.size() - 1;	
+		
+		get_node(\"cursor\").global_position.y = menu_opts[cursor_pos].rect_position.y + (font.get_height() / 2.0);
+	
+	return;"
+
+[node name="options_root" type="Node2D"]
+script = SubResource( 1 )
+
+[node name="aud_move" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 1 )
+
+[node name="aud_accept" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 2 )
+
+[node name="cursor" type="Sprite" parent="."]
+position = Vector2( 160, 48 )
+texture = ExtResource( 3 )
+centered = false
+offset = Vector2( -20, -3 )
+
+[node name="logo" type="Sprite" parent="."]
+position = Vector2( 160, 48 )
+texture = ExtResource( 4 )
+
+[node name="disc_noises" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 5 )
+volume_db = -15.0
+autoplay = true

@@ -2,12 +2,12 @@
 
 importer="wav"
 type="AudioStreamSample"
-path="res://.import/disc.wav-d26baa30bf08072840a11f0445a140ec.sample"
+path="res://.import/disc1.wav-039b612b2bc35927570f6db3f2cc0623.sample"
 
 [deps]
 
-source_file="res://snd/splash/disc.wav"
-dest_files=[ "res://.import/disc.wav-d26baa30bf08072840a11f0445a140ec.sample" ]
+source_file="res://snd/disc/disc1.wav"
+dest_files=[ "res://.import/disc1.wav-039b612b2bc35927570f6db3f2cc0623.sample" ]
 
 [params]
 

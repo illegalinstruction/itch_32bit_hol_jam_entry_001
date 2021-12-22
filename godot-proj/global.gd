@@ -8,10 +8,11 @@ const DEBUG_MODE : bool = true;
 const game_data_base : String = "user://kkringle_001";
 const options_path 		= game_data_base + "-options";
 const hiscore_path 		= game_data_base + "-hiscores";
+const trophies_path 		= game_data_base + "-trophies";
 
 const GAME_SUPPORTS_SAVING 			: bool = true;
-const GAME_SUPPORTS_HIGH_SCORES		: bool = false;
-const GAME_SUPPORTS_TROPHIES			: bool = true;
+const GAME_SUPPORTS_HIGH_SCORES		: bool = true;
+const GAME_SUPPORTS_TROPHIES			: bool = false;
 
 var sfx_vol 		: int 	= 255;
 var music_vol 		: int 	= 255;
@@ -120,8 +121,11 @@ var _left_stick_distance : float;
 var _right_stick_x : float;
 var _right_stick_y : float;
 
-var _menu_up : int = BUTTON_STATE.IDLE;
-var _menu_down : int = BUTTON_STATE.IDLE;
+var _menu_up 		: int = BUTTON_STATE.IDLE;
+var _menu_down 	: int = BUTTON_STATE.IDLE;
+var _menu_accept	: int	= BUTTON_STATE.IDLE;
+		
+		
 
 var _button_start : int = BUTTON_STATE.IDLE;
 var _button_select : int = BUTTON_STATE.IDLE;
@@ -144,30 +148,38 @@ func poll_joystick():
 		_menu_down  = BUTTON_STATE.IDLE;
 		
 		return;
+
+	
+	#--- affordance for navigating menus ----------
+	var left_tmp : Vector2 = Vector2(Input.get_joy_axis(0,JOY_ANALOG_LX), Input.get_joy_axis(0,JOY_ANALOG_LY));
+		
+	if ((left_tmp.y < -0.7) or (Input.is_joy_button_pressed(0, JOY_DPAD_UP)) or (Input.is_key_pressed(KEY_UP))):
+		_menu_up = _menu_up + 1;
+	else:
+		_menu_up = BUTTON_STATE.IDLE;
+	
+	if ((left_tmp.y > 0.7) or (Input.is_joy_button_pressed(0, JOY_DPAD_DOWN)) or (Input.is_key_pressed(KEY_DOWN))):
+		_menu_down = _menu_down + 1;
+	else:
+		_menu_down = BUTTON_STATE.IDLE;
+		
+	if ((Input.is_joy_button_pressed(0, JOY_XBOX_A)) or (Input.is_key_pressed(KEY_SPACE)) or (Input.is_key_pressed(KEY_ENTER))):
+		_menu_accept = _menu_accept + 1;
+	else:
+		_menu_accept = BUTTON_STATE.IDLE;
+
 	
 	if (use_joystick):
 		
 		#--- ANALOGUE STICKS --------------------------
-		var left_tmp : Vector2 = Vector2(Input.get_joy_axis(0,JOY_ANALOG_LX), Input.get_joy_axis(0,JOY_ANALOG_LY));
-		
+		# player control
 		_left_stick_distance = left_tmp.length();
 		_left_stick_angle = left_tmp.angle();
 		
+		# camera control
 		_right_stick_x = Input.get_joy_axis(0,JOY_ANALOG_RX);
 		_right_stick_y = Input.get_joy_axis(0,JOY_ANALOG_RY);
 		
-		#--- affordance for navigating menus ----------
-		
-		if ((left_tmp.y < -0.7) or (Input.is_joy_button_pressed(0, JOY_DPAD_UP))):
-			_menu_up = _menu_up + 1;
-		else:
-			_menu_up = BUTTON_STATE.IDLE;
-		
-		if ((left_tmp.y > 0.7) or (Input.is_joy_button_pressed(0, JOY_DPAD_DOWN))):
-			_menu_down = _menu_down + 1;
-		else:
-			_menu_down = BUTTON_STATE.IDLE;
-			
 		
 		#--- BUTTONS ----------------------------------
 		#----------
@@ -433,3 +445,8 @@ func new_scene_screenwipe_start():
 	screenwipe_direction 	= false;
 	screenwipe_anim_clock	= SCREENWIPE_MAX_TICKS;
 	
+	
+#-------------------------------------------------------------------------------
+# convenience func to convert from unsigned byte to decibels
+func actual_playback_vol():
+	return ((sfx_vol / 255.0) * 50.0) - 49.7;
