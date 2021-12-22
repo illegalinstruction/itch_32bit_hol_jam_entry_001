@@ -2,8 +2,8 @@
 
 importer="texture"
 type="StreamTexture"
-path.s3tc="res://.import/placeholder-texture-atlas.png-9b5fbc1cffced96dfe6af1e2e5c8791e.s3tc.stex"
-path.etc="res://.import/placeholder-texture-atlas.png-9b5fbc1cffced96dfe6af1e2e5c8791e.etc.stex"
+path.s3tc="res://.import/entity-shadow.png-4ea337cdcc8a5fb07fe0bcc873969424.s3tc.stex"
+path.etc="res://.import/entity-shadow.png-4ea337cdcc8a5fb07fe0bcc873969424.etc.stex"
 metadata={
 "imported_formats": [ "s3tc", "etc" ],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://gfx/models/levels/placeholder-texture-atlas.png"
-dest_files=[ "res://.import/placeholder-texture-atlas.png-9b5fbc1cffced96dfe6af1e2e5c8791e.s3tc.stex", "res://.import/placeholder-texture-atlas.png-9b5fbc1cffced96dfe6af1e2e5c8791e.etc.stex" ]
+source_file="res://gfx/models/misc/entity-shadow.png"
+dest_files=[ "res://.import/entity-shadow.png-4ea337cdcc8a5fb07fe0bcc873969424.s3tc.stex", "res://.import/entity-shadow.png-4ea337cdcc8a5fb07fe0bcc873969424.etc.stex" ]
 
 [params]
 

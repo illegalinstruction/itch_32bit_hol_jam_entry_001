@@ -2,12 +2,12 @@
 
 importer="scene"
 type="PackedScene"
-path="res://.import/test-room.dae-e8707183b19c6a0f50932dfbe9323705.scn"
+path="res://.import/kristen.dae-bc529bac2892e58eef0bbb3e3a6a0734.scn"
 
 [deps]
 
-source_file="res://gfx/models/levels/test-room.dae"
-dest_files=[ "res://.import/test-room.dae-e8707183b19c6a0f50932dfbe9323705.scn" ]
+source_file="res://gfx/models/hero/kristen.dae"
+dest_files=[ "res://.import/kristen.dae-bc529bac2892e58eef0bbb3e3a6a0734.scn" ]
 
 [params]
 
